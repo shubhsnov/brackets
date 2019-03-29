@@ -107,7 +107,6 @@ define(function (require, exports, module) {
         }
 
         if (clientInfoDomainPromise.state() === "pending") {
-            console.log("Through Pending");
             var doneCallback = _clientLoader.bind(null, clientName, clientFilePath);
             clientDoneCallbacks.push(doneCallback);
         } else {
