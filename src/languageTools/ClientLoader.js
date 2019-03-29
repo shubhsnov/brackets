@@ -42,7 +42,10 @@ define(function (require, exports, module) {
         clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
 
     //Init node with Information required by Language Client
-    clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
+    var clientInfoDomainPromise = clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo),
+        clientDoneCallbacks = [];
+
+    clientInfoDomainPromise.then(clientDoneCallbacks);
 
     function syncPrefsWithDomain(languageToolsPrefs) {
         if (clientInfoDomain) {
@@ -87,7 +90,8 @@ define(function (require, exports, module) {
     function initiateLanguageClient(clientName, clientFilePath) {
         var result = $.Deferred();
 
-        loadLanguageClientDomain(clientName, clientFilePath)
+        function _clientLoader(clientName, clientFilePath) {
+            loadLanguageClientDomain(clientName, clientFilePath)
             .then(function (languageClientDomain) {
                 var languageClientInterface = createNodeInterfaceForDomain(languageClientDomain);
 
@@ -96,6 +100,14 @@ define(function (require, exports, module) {
                     interface: languageClientInterface
                 });
             }, result.reject);
+        }
+
+        if (clientInfoDomainPromise.state() === "pending") {
+            var doneCallback = _clientLoader.bind(null, clientName, clientFilePath);
+            clientDoneCallbacks.push(doneCallback);
+        } else {
+            _clientLoader(clientName, clientFilePath);
+        }
 
         return result;
     }
