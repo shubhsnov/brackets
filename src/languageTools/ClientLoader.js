@@ -45,7 +45,11 @@ define(function (require, exports, module) {
     var clientInfoDomainPromise = clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo),
         clientDoneCallbacks = [];
 
-    clientInfoDomainPromise.then(clientDoneCallbacks);
+    clientInfoDomainPromise.then(function () {
+        clientDoneCallbacks.forEach(function (startClient) {
+            startClient();
+        });
+    });
 
     function syncPrefsWithDomain(languageToolsPrefs) {
         if (clientInfoDomain) {
@@ -103,6 +107,7 @@ define(function (require, exports, module) {
         }
 
         if (clientInfoDomainPromise.state() === "pending") {
+            console.log("Through Pending");
             var doneCallback = _clientLoader.bind(null, clientName, clientFilePath);
             clientDoneCallbacks.push(doneCallback);
         } else {
