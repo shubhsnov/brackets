@@ -137,6 +137,10 @@ define(function (require, exports, module) {
             return PathUtils;
         }
     });
+    
+    //load language features
+    require("features/ParameterHintsManager");
+    require("features/JumpToDefManager");
 
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -151,9 +155,21 @@ define(function (require, exports, module) {
     require("search/FindInFilesUI");
     require("search/FindReplace");
 
+    //Load find References Feature Manager
+    require("features/FindReferencesManager");
+
     //Load common JS module
     require("JSUtils/Session");
     require("JSUtils/ScopeManager");
+
+    //load Language Tools Module
+    require("languageTools/PathConverters");
+    require("languageTools/LanguageTools");
+    require("languageTools/ClientLoader");
+    require("languageTools/BracketsToNodeInterface");
+    require("languageTools/DefaultProviders");
+    require("languageTools/DefaultEventHandlers");
+
 
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
@@ -241,6 +257,23 @@ define(function (require, exports, module) {
             );
         }
 
+        brackets.app.getRemoteDebuggingPort(function (err, remote_debugging_port){
+            var InfoBar = require('widgets/infobar'),
+                StringUtils = require("utils/StringUtils");
+            if ((!err) && remote_debugging_port && remote_debugging_port > 0) {
+                InfoBar.showInfoBar({
+                    type: "warning",
+                    title: `${Strings.REMOTE_DEBUGGING_ENABLED}${remote_debugging_port}`,
+                    description: ""
+                });
+            } else if (err) {
+                InfoBar.showInfoBar({
+                    type: "error",
+                    title: StringUtils.format(Strings.REMOTE_DEBUGGING_PORT_INVALID, err, 1024, 65534),
+                    description: ""
+                });
+            }
+        });
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
         // using the "Always" scroll bar setting.
